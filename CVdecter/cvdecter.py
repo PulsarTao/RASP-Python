@@ -1,36 +1,53 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import cv2
+import time
+from matplotlib import pyplot as plt
 class raspdec:
-    def sum_mat(self,mat):
-        res = 0;
-        for i in mat:
-            for a in i:
-                for x in a:
-                    res += x
-        return res
     def dect(self):
-        cap = cv2.VideoCapture(0)
-        ret, frame = cap.read()
-        rgb = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        center_height = len(frame) / 2
-        center_width = len(frame[0]) / 2
+
         lower_red = np.array([0, 0, 0])
-        upper_red = np.array([0, 0, 255])
-        mask = cv2.inRange(frame, lower_red, upper_red)
-        res = cv2.bitwise_and(frame, frame, mask=mask)
-        center_height = int(len(frame) / 2)
-        center_width = int(len(frame[0]) / 2)
-        frame_upper_left = res[:center_width, :center_height]
-        frame_upper_right = res[center_width:, :center_height]
-        frame_low_left = res[center_width:, :center_height]
-        frame_low_right = res[center_width:, center_height:]
-        left = self.sum_mat(frame_upper_left) + self.sum_mat(frame_low_left)
-        right = self.sum_mat(frame_upper_right) + self.sum_mat(frame_low_right)
-        if left > right:
-            print("left")
-            return 0
-        else:
-            print("right")
-            return 1
+        upper_red = np.array([0, 255, 255])
+        cap = cv2.VideoCapture(0)
+        while 1:
+            ret, frame = cap.read()
+            mask = cv2.inRange(frame, lower_red, upper_red)
+            res = cv2.bitwise_and(frame, frame, mask=mask)
+            ret,binary = cv2.threshold(res, 127, 255, cv2.THRESH_BINARY)
+            count=0
+            upper=[]
+            width=len(binary[0])
+            hight=len(binary)
+            for x in range(hight):
+                for k in range(width):
+                    if any(binary[x][k]):
+                        count=1
+                if count!=0:
+                    upper=[x,k]
+                    break
+            squre=[]
+            count=0
+            for x in range(width):
+                for k in range(hight):
+                    if any(binary[k][x]):
+                        count+=1
+                if count!=0:
+                    squre.append(count)
+                count=0
+            sum_left=0
+            sum_right=0
+            for x in range(int(len(squre)/2)):
+                sum_left+=squre[x]
+            for y in range(int(len(squre)/2)):
+                sum_right+=squre[int(len(squre)/2)+y]
+            if sum_left>sum_right:
+                print("right")
+                # return 1
+            else:
+                print("left")
+                # return 0
+            time.sleep(1)
+if __name__=="__main__":
+    a=raspdec()
+    print(a.dect())
 
